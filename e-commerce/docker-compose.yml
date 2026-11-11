@@ -1,0 +1,273 @@
+
+services:
+  # ─── Infrastructure ─────────────────────────────────────
+  mongodb:
+    image: mongo:7
+    container_name: dynamo-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - dynamo-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: dynamo-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - dynamo-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Backend Services ───────────────────────────────────
+  api-gateway:
+    build:
+      context: .
+      dockerfile: apps/api-gateway/Dockerfile
+    container_name: dynamo-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - API_GATEWAY_PORT=8080
+      - AUTH_SERVICE_URL=http://auth-service:8081
+      - USER_SERVICE_URL=http://user-service:8082
+      - PRODUCT_SERVICE_URL=http://product-service:8083
+      - CART_SERVICE_URL=http://cart-service:8084
+      - ORDER_SERVICE_URL=http://order-service:8085
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8086
+      - SEARCH_SERVICE_URL=http://search-service:8087
+      - ADMIN_SERVICE_URL=http://admin-service:8088
+      - JWT_SECRET=${JWT_SECRET:-dynamo-secret-key}
+      - REDIS_URL=redis:6379
+      - APP_ENV=development
+      - LOG_LEVEL=debug
+    depends_on:
+      - auth-service
+      - user-service
+      - product-service
+      - cart-service
+      - order-service
+      - search-service
+      - notification-service
+      - admin-service
+    networks:
+      - dynamo-network
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: services/auth-service/Dockerfile
+    container_name: dynamo-auth
+    ports:
+      - "8081:8081"
+    environment:
+      - AUTH_SERVICE_PORT=8081
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_AUTH_DB=ecommerce-auth
+      - REDIS_URL=redis:6379
+      - JWT_SECRET=${JWT_SECRET:-dynamo-secret-key}
+      - APP_ENV=development
+      - LOG_LEVEL=debug
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dynamo-network
+
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user-service/Dockerfile
+    container_name: dynamo-user
+    ports:
+      - "8082:8082"
+    environment:
+      - USER_SERVICE_PORT=8082
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_USERS_DB=ecommerce-users
+      - JWT_SECRET=${JWT_SECRET:-dynamo-secret-key}
+      - APP_ENV=development
+      - LOG_LEVEL=debug
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - dynamo-network
+
+  product-service:
+    build:
+      context: .
+      dockerfile: services/product-service/Dockerfile
+    container_name: dynamo-product
+    ports:
+      - "8083:8083"
+    environment:
+      - PRODUCT_SERVICE_PORT=8083
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_PRODUCTS_DB=ecommerce-products
+      - REDIS_URL=redis:6379
+      - JWT_SECRET=${JWT_SECRET:-dynamo-secret-key}
+      - APP_ENV=development
+      - LOG_LEVEL=debug
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - dynamo-network
+
+  cart-service:
+    build:
+      context: .
+      dockerfile: services/cart-service/Dockerfile
+    container_name: dynamo-cart
+    ports:
+      - "8084:8084"
+    environment:
+      - CART_SERVICE_PORT=8084
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_CART_DB=ecommerce-cart
+      - JWT_SECRET=${JWT_SECRET:-dynamo-secret-key}
+      - APP_ENV=development
+      - LOG_LEVEL=debug
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - dynamo-network
+
+  order-service:
+    build:
+      context: .
+      dockerfile: services/order-service/Dockerfile
+    container_name: dynamo-order
+    ports:
+      - "8085:8085"
+    environment:
+      - ORDER_SERVICE_PORT=8085
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_ORDERS_DB=ecommerce-orders
+      - JWT_SECRET=${JWT_SECRET:-dynamo-secret-key}
+      - APP_ENV=development
+      - LOG_LEVEL=debug
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - dynamo-network
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: services/notification-service/Dockerfile
+    container_name: dynamo-notification
+    ports:
+      - "8086:8086"
+    environment:
+      - NOTIFICATION_SERVICE_PORT=8086
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_NOTIFICATIONS_DB=ecommerce-notifications
+      - JWT_SECRET=${JWT_SECRET:-dynamo-secret-key}
+      - APP_ENV=development
+      - LOG_LEVEL=debug
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - dynamo-network
+
+  search-service:
+    build:
+      context: .
+      dockerfile: services/search-service/Dockerfile
+    container_name: dynamo-search
+    ports:
+      - "8087:8087"
+    environment:
+      - SEARCH_SERVICE_PORT=8087
+      - MONGODB_URI=mongodb://mongodb:27017
+      - MONGODB_PRODUCTS_DB=ecommerce-products
+      - JWT_SECRET=${JWT_SECRET:-dynamo-secret-key}
+      - APP_ENV=development
+      - LOG_LEVEL=debug
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - dynamo-network
+
+  # # ─── Frontend ───────────────────────────────────────────
+  # frontend:
+  #   build:
+  #     context: ./apps/frontend
+  #     dockerfile: Dockerfile
+  #     args:
+  #       - NEXT_PUBLIC_API_URL=http://192.168.6.53:8080
+  #   container_name: dynamo-frontend
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NEXT_PUBLIC_API_URL=http://192.168.6.53:8080
+  #     - NEXT_PUBLIC_APP_NAME=DYNAMO
+  #   depends_on:
+  #     - api-gateway
+  #   networks:
+  #     - dynamo-network
+
+  # ─── Admin Backoffice ───────────────────────────────────
+  admin-service:
+    build:
+      context: .
+      dockerfile: services/admin-service/Dockerfile
+    container_name: dynamo-admin-service
+    ports:
+      - "8088:8088"
+    environment:
+      - ADMIN_SERVICE_PORT=8088
+      - MONGODB_URI=mongodb://mongodb:27017
+      - JWT_SECRET=${JWT_SECRET:-dynamo-secret-key}
+      - APP_ENV=development
+      - LOG_LEVEL=debug
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - dynamo-network
+
+  admin-portal:
+    build:
+      context: ./apps/admin-portal
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://192.168.6.53:8080
+    container_name: dynamo-admin-portal
+    ports:
+      - "3002:3001"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://192.168.6.53:8080
+      - NEXT_PUBLIC_APP_NAME=DYNAMO ADMIN
+    depends_on:
+      - api-gateway
+    networks:
+      - dynamo-network
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  dynamo-network:
+    driver: bridge

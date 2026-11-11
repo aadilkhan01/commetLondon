@@ -1,0 +1,135 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+:root {
+  --color-bg-primary: #F0EDE8;
+  --color-bg-white: #FFFFFF;
+  --color-bg-dark: #1A1A1A;
+  --color-bg-cream: #F5F0EB;
+  --color-text-primary: #1A1A1A;
+  --color-text-secondary: #6B6B6B;
+  --color-text-muted: #999999;
+  --color-text-inverse: #FFFFFF;
+  --color-accent-red: #C75050;
+  --color-accent-green: #2E7D32;
+  --color-border: #D4D0CC;
+  --color-border-light: #E8E4DF;
+
+  --font-heading: 'DM Mono', 'Courier New', monospace;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --header-height: 64px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+}
+
+/* Admin Specific Panel Elements */
+.admin-card {
+  background-color: var(--color-bg-white);
+  border: 1px solid var(--color-border-light);
+  padding: 24px;
+  border-radius: 0px;
+}
+
+.table-admin {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-admin th {
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border);
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 500;
+}
+
+.table-admin td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border-light);
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.table-admin tr:hover {
+  background-color: var(--color-bg-cream);
+}
+
+.input-admin {
+  width: 100%;
+  padding: 10px 14px;
+  background-color: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--color-text-primary);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input-admin:focus {
+  border-color: var(--color-bg-dark);
+}
+
+.btn-admin-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: var(--color-bg-dark);
+  color: var(--color-text-inverse);
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-admin-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-admin-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-text-primary);
+  font-family: var(--font-heading);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-admin-outline:hover {
+  background-color: var(--color-bg-dark);
+  color: var(--color-text-inverse);
+}
